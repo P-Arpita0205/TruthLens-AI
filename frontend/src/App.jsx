@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import VideoAnalysis from './pages/VideoAnalysis';
 import PhotoAnalysis from './pages/PhotoAnalysis';
 import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Mock auth logic for UI demonstration
@@ -26,6 +27,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         
         <Route path="/dashboard" element={
           <ProtectedRoute>

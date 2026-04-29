@@ -118,7 +118,8 @@ export default function Profile() {
       }
 
       clearLocalSession();
-      navigate('/auth?mode=signup', { replace: true });
+      alert('Your profile has been successfully deleted.');
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.message || 'Failed to delete profile');
       setShowDeleteConfirm(false);
