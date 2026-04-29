@@ -277,14 +277,16 @@ Analyze a photo or video for deepfake manipulation.
 }
 ```
 
-### Detection Pipeline (3-Tier Fallback)
+### Detection Pipeline (4-Tier Fallback)
 
 ```
-Tier 1 → Gemini VLM          (primary — retries 3× on rate-limit/downtime)
-     ↓ fails
-Tier 2 → Sightengine API     (DFDC-trained, ~90%+ accuracy — optional)
-     ↓ not configured / down
-Tier 3 → Local CNN + OpenCV  (always available, offline-capable)
+Tier 1 → Gemini VLM          (Primary — Multi-agent reasoning)
+     ↓ fails / rate-limited
+Tier 2 → Sightengine API     (Specialized — ~90%+ accuracy, DFDC-trained)
+     ↓ fails / not configured
+Tier 3 → Local SigLIP ViT    (Local — ~85%+ accuracy, Hugging Face model)
+     ↓ fails / hardware limit
+Tier 4 → Local Heuristics    (Backup — CNN + OpenCV + FFT signals)
 ```
 
 ---

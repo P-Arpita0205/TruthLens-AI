@@ -3,6 +3,7 @@ const edgeService = require('./edge.service');
 const opencvForensicsService = require('./opencv-forensics.service');
 const backupSignalsService = require('./backup-signals.service');
 const sightengineService = require('./sightengine.service');
+const vitFallbackService = require('./vit-fallback.service');
 
 class VisionService {
   async sleep(ms) {
@@ -189,10 +190,33 @@ class VisionService {
         return await this.attachLocalForensics(sightengineBase, imageBuffer, mimeType, options);
       }
 
-      console.warn('[VisionService] Sightengine unavailable, falling to Tier 3 local signals.');
+      console.warn('[VisionService] Sightengine unavailable, falling to Tier 3 local ViT.');
     }
 
-    // ── Tier 3: Local Backup Signals (CNN + OpenCV + Edge heuristics) ─────────
+    // ── Tier 3: Local ViT (SigLIP) Deepfake Detector ─────────────────────────
+    // Runs locally using Hugging Face transformers. ~85%+ accuracy.
+    // Completely free and privacy-focused (no data leaves the server).
+    const vitResult = await vitFallbackService.analyzeMedia(imageBuffer, mimeType);
+    if (vitResult.available && vitResult.status === 'ok') {
+      console.info('[VisionService] Tier 3 fallback: Local ViT detector succeeded.');
+
+      const vitBase = {
+        visual_score: vitResult.visual_score,
+        ai_generation_score: vitResult.ai_generation_score,
+        authenticity_confidence: vitResult.authenticity_confidence,
+        flags: vitResult.flags || [],
+        summary: vitResult.summary || '',
+        analysis_ok: true,
+        fallback_used: true,
+        fallback_source: 'local-vit'
+      };
+
+      // Enrich with OpenCV/Edge signals
+      return await this.attachLocalForensics(vitBase, imageBuffer, mimeType, options);
+    }
+
+    // ── Tier 4: Local Heuristic Signals (CNN + OpenCV + Edge) ─────────────────
+    console.warn('[VisionService] Local ViT unavailable, falling to Tier 4 local heuristics.');
     const backupResult = await backupSignalsService.analyzeImageBuffer(imageBuffer, mimeType, options);
 
     return {
