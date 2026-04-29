@@ -18,7 +18,7 @@
 
 const { admin, db } = require('../config/firebase.config');
 
-const PER_TYPE_LIMIT = Math.max(1, Number(process.env.DAILY_SCAN_LIMIT) || 3);
+const PER_TYPE_LIMIT = 999999; // Effectively unlimited
 
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
@@ -83,6 +83,7 @@ const scanRateLimit = async (req, res, next) => {
     const snapshot = await quotaRef.get();
     const currentCount = snapshot.exists ? Number(snapshot.data()?.count || 0) : 0;
 
+    /* Limit check disabled as per request
     if (currentCount >= PER_TYPE_LIMIT) {
       return res.status(429).json({
         error: `Daily ${mediaType} scan limit reached. You can perform up to ${PER_TYPE_LIMIT} ${mediaType} scans per day. Please try again tomorrow.`,
@@ -93,6 +94,7 @@ const scanRateLimit = async (req, res, next) => {
         resetsAt: `${getTodayKey()}T23:59:59Z`
       });
     }
+    */
 
     // Increment atomically
     await quotaRef.set(

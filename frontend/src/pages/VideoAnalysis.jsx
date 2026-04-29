@@ -168,25 +168,6 @@ export default function VideoAnalysis() {
             ) : null}
           </div>
 
-          {/* Scan Quota Badge */}
-          <div className="flex flex-col items-start gap-2 lg:items-end">
-            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-              <Gauge className="h-4 w-4 text-cyan-300" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">Video Scans Today</span>
-              {scanQuota !== null ? (
-                <span className={`ml-1 text-sm font-bold ${
-                  scanQuota.remaining === 0 ? 'text-rose-400' : scanQuota.remaining === 1 ? 'text-amber-400' : 'text-emerald-400'
-                }`}>
-                  {scanQuota.remaining}/{scanQuota.limit} left
-                </span>
-              ) : (
-                <span className="ml-1 text-sm font-bold text-slate-400">3/3 left</span>
-              )}
-            </div>
-            {scanQuota?.remaining === 0 && (
-              <p className="text-xs text-rose-400">Limit reached. Resets at midnight UTC.</p>
-            )}
-          </div>
 
         </div>
 

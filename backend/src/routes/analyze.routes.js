@@ -5,7 +5,7 @@ const upload = require('../middlewares/upload.middleware');
 const scanRateLimit = require('../middlewares/scanRateLimit.middleware');
 const { admin, db } = require('../config/firebase.config');
 
-const PER_TYPE_LIMIT = Math.max(1, Number(process.env.DAILY_SCAN_LIMIT) || 3);
+const PER_TYPE_LIMIT = 999999;
 
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
