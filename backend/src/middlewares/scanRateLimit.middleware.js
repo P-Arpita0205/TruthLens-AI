@@ -1,10 +1,8 @@
 /**
  * scanRateLimit middleware
  *
- * Enforces SEPARATE per-user daily scan quotas by media type:
- *   - Video: 3 scans/day
- *   - Photo: 3 scans/day
- *   - Total: 6 scans/day (3 video + 3 photo)
+ * NOTE: Scan limits have been REMOVED as per user request.
+ * This middleware now only tracks usage for analytics without blocking.
  *
  * Identity resolution (in priority order):
  *  1. Firebase ID Token in Authorization: Bearer <token> header → verified UID
@@ -12,8 +10,6 @@
  *
  * Storage: Firestore collection `scan_quotas`
  *   Doc key: `{identity}_{mediaType}_{YYYY-MM-DD}`
- *
- * Config:  DAILY_SCAN_LIMIT env var sets the per-type limit (default: 3)
  */
 
 const { admin, db } = require('../config/firebase.config');
