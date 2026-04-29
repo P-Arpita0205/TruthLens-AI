@@ -1,35 +1,36 @@
 # TruthLens AI - Project Requirements
 
-# NOTE: The core architecture is currently built using Node.js (Backend) and React/Vite (Frontend).
-# Standard dependency management is handled via the `package.json` files in the /frontend and /backend directories.
-# However, for documentation and environment setup purposes, here are the system requirements:
-
 # --- System Requirements ---
 Node.js >= 18.0.0
 npm >= 9.0.0
+ffmpeg >= 4.0.0 (Required for video processing)
+Python >= 3.9.0 (Required for Tier 3/4 local forensics)
 
-# Optional System Dependencies
-# ffmpeg (Required on the host machine if you switch from simulated buffer extraction to true file-based video extraction)
-ffmpeg
+# --- Python Dependencies (For Local Forensic Tiers) ---
+# Install using: pip install -r requirements.txt
+transformers>=4.38.0
+torch>=2.2.0
+pillow>=10.2.0
+opencv-python>=4.9.0
+numpy>=1.26.0
 
 # --- Backend Dependencies (Node.js) ---
-express==4.19.0
-cors==2.8.5
-dotenv==16.4.5
-firebase-admin==12.1.0
-@google/generative-ai==0.7.1
-nodemailer==6.9.13
-multer==1.4.5-lts.1
-fluent-ffmpeg==2.1.3
-uuid==9.0.1
+# Managed via /backend/package.json
+express
+cors
+dotenv
+firebase-admin
+@google/generative-ai
+nodemailer
+multer
+fluent-ffmpeg
+uuid
 
 # --- Frontend Dependencies (React) ---
-react==18.2.0
-react-dom==18.2.0
-react-router-dom==6.22.3
-framer-motion==11.0.24
-recharts==2.12.3
-lucide-react==0.363.0
-tailwindcss==3.4.3
-postcss==8.4.38
-autoprefixer==10.4.19
+# Managed via /frontend/package.json
+react
+framer-motion
+recharts
+lucide-react
+tailwindcss
+axios
