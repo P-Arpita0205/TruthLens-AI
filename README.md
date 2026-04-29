@@ -61,19 +61,14 @@ graph TD
 
 ---
 
-## ⏱️ Rate Limiting & Quotas
+---
 
-To protect infrastructure budgets and ensure fair usage, a robust rate-limiting system is in place:
+## ⚡ Performance Optimizations
 
-- **Quota**: **3 Scans per user/day**.
-- **Storage**: Enforced via Firestore with atomic increments.
-- **Reset**: Quotas reset automatically at midnight UTC.
-
-| HTTP | Status | Meaning |
-|---|---|---|
-| `200` | OK | Success, returns analysis and remaining quota. |
-| `429` | Too Many Requests | Daily limit reached. |
-| `401` | Unauthorized | Valid login required. |
+TruthLens AI is optimized for speed and accuracy:
+- **Low-Latency Auth**: Parallelized Firebase/Firestore lookups for near-instant login and profile management.
+- **Fast Analysis**: Optimized frame extraction and concurrent VLM processing for rapid results.
+- **Unlimited Usage**: No daily scan limits – analyze as many photos and videos as needed.
 
 ---
 
@@ -111,7 +106,6 @@ SIGHTENGINE_API_USER=your_user
 SIGHTENGINE_API_SECRET=your_secret
 SMTP_USER=your_gmail
 SMTP_PASS=your_app_password
-DAILY_SCAN_LIMIT=3
 ```
 
 > **Note**: Place your `serviceAccountKey.json` in `backend/src/config/`.

@@ -29,7 +29,10 @@ const getFirestoreUserByEmailIfExists = async (email) => {
 };
 
 const getAccountByEmailIfExists = async (email) => {
-  const authUser = auth ? await getUserByEmailIfExists(email) : null;
+  const [authUser, firestoreUser] = await Promise.all([
+    auth ? getUserByEmailIfExists(email) : null,
+    getFirestoreUserByEmailIfExists(email)
+  ]);
 
   if (authUser) {
     const userDocRef = db.collection('users').doc(authUser.uid);
@@ -42,7 +45,6 @@ const getAccountByEmailIfExists = async (email) => {
     };
   }
 
-  const firestoreUser = await getFirestoreUserByEmailIfExists(email);
   if (!firestoreUser) {
     return null;
   }

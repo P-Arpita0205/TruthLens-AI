@@ -10,18 +10,18 @@ const execFileAsync = promisify(execFile);
 
 class VideoService {
   getAnalysisConcurrency() {
-    const configured = Number(process.env.VIDEO_ANALYSIS_CONCURRENCY || 2);
-    if (Number.isNaN(configured)) return 2;
-    return Math.max(1, Math.min(4, configured));
+    const configured = Number(process.env.VIDEO_ANALYSIS_CONCURRENCY || 4);
+    if (Number.isNaN(configured)) return 4;
+    return Math.max(1, Math.min(8, configured));
   }
 
   getTargetFrameCount(durationSeconds) {
-    if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) return 12;
-    if (durationSeconds <= 1.2) return 5;
-    if (durationSeconds <= 3) return 8;
-    if (durationSeconds <= 8) return 12;
-    if (durationSeconds <= 18) return 18;
-    return 24;
+    if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) return 8;
+    if (durationSeconds <= 1.2) return 4;
+    if (durationSeconds <= 3) return 6;
+    if (durationSeconds <= 8) return 8;
+    if (durationSeconds <= 18) return 10;
+    return 12;
   }
 
   getMinimumFrameCount(durationSeconds) {
@@ -272,10 +272,10 @@ class VideoService {
     const jawCenterOffset = this.getLocalMetric(analysis, 'jaw_center_offset');
 
     return (
-      jawAsymmetry >= 0.15 ||
-      jawCenterOffset >= 0.14 ||
-      jawWidthRatio >= 0.86 ||
-      (jawWidthRatio > 0 && jawWidthRatio <= 0.34)
+      jawAsymmetry >= 0.22 ||
+      jawCenterOffset >= 0.20 ||
+      jawWidthRatio >= 0.92 ||
+      (jawWidthRatio > 0 && jawWidthRatio <= 0.28)
     );
   }
 
@@ -285,9 +285,9 @@ class VideoService {
     const mouthEdgeDensity = this.getLocalMetric(analysis, 'mouth_edge_density');
 
     return (
-      mouthAsymmetry >= 0.14 ||
-      mouthOpenRatio >= 0.42 ||
-      (mouthAsymmetry >= 0.11 && mouthEdgeDensity >= 0.16)
+      mouthAsymmetry >= 0.20 ||
+      mouthOpenRatio >= 0.55 ||
+      (mouthAsymmetry >= 0.16 && mouthEdgeDensity >= 0.22)
     );
   }
 
@@ -295,7 +295,7 @@ class VideoService {
     const eyeAsymmetry = this.getLocalMetric(analysis, 'eye_highlight_asymmetry');
     const eyeOpenness = this.getLocalMetric(analysis, 'eye_openness_ratio');
 
-    return eyeAsymmetry >= 0.018 || eyeOpenness >= 0.50;
+    return eyeAsymmetry >= 0.028 || eyeOpenness >= 0.65;
   }
 
   getFacialSignalScore(analysis = {}) {
