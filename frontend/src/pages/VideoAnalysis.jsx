@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   UploadCloud,
@@ -22,6 +22,14 @@ export default function VideoAnalysis() {
   const [error, setError] = useState('');
   const [isDragActive, setIsDragActive] = useState(false);
   const [scanQuota, setScanQuota] = useState(null);
+
+  // Fetch real quota on page load
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/analyze/quota?type=video`)
+      .then(r => r.json())
+      .then(data => { if (data.limit !== undefined) setScanQuota(data); })
+      .catch(() => {}); // silently fail — badge shows 3/3 as fallback
+  }, []);
 
   const handleDragOver = (e) => {
     e.preventDefault();
