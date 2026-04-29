@@ -2,8 +2,10 @@ const visionService = require('./vision.service');
 const edgeService = require('./edge.service');
 
 class AgentsService {
-  getManipulationThreshold() {
-    return 55;
+  getManipulationThreshold(isVideo = false) {
+    // Old cameras produce compression/grain artifacts that score similarly to deepfakes.
+    // Use a significantly higher threshold for video to reduce false positives.
+    return isVideo ? 65 : 55;
   }
 
   clampScore(value) {
@@ -299,7 +301,7 @@ class AgentsService {
     const faceDetectedFrameCount = Number(perceptionData.faceDetectedFrameCount || 0);
     const moderateFaceFrameCount = Number(perceptionData.moderateFaceFrameCount || 0);
     const localOnlyAnalysis = Boolean(perceptionData.localOnlyAnalysis || perceptionData.fallbackUsed);
-    const threshold = this.getManipulationThreshold();
+    const threshold = this.getManipulationThreshold(isVideoAnalysis);
 
     if (isVideoAnalysis) {
       const facialEvidenceStrength = this.clampScore(evidenceSignals.facialEvidenceStrength || 0);
@@ -461,12 +463,18 @@ class AgentsService {
   async authenticityAgent(perceptionData, temporalData = null) {
     const strictRisk = this.calculateStrictRisk(perceptionData, temporalData);
     const decisionScore = strictRisk;
-    const threshold = this.getManipulationThreshold();
     const evidence = this.collectEvidenceSignals(perceptionData, temporalData);
-    const hasEnoughEvidence = evidence.isVideoAnalysis
+    const isVideoAnalysis = Boolean(evidence.isVideoAnalysis);
+    const threshold = this.getManipulationThreshold(isVideoAnalysis);
+    const localOnlyAnalysis = Boolean(perceptionData.localOnlyAnalysis || perceptionData.fallbackUsed);
+
+    const hasEnoughEvidence = isVideoAnalysis
       ? (
           evidence.facialVideoEvidence &&
-          (evidence.exceptionallyStrong || decisionScore >= threshold)
+          (evidence.exceptionallyStrong || decisionScore >= threshold) &&
+          // For local-only video (no Gemini/Sightengine), require exceptionally strong evidence
+          // to prevent old camera footage from being wrongly flagged
+          (!localOnlyAnalysis || evidence.exceptionallyStrong)
         )
       : (
           evidence.exceptionallyStrong ||

@@ -26,22 +26,31 @@ class BackupSignalsService {
     return Number.isNaN(numericValue) ? fallback : numericValue;
   }
 
-  computeFrequencySignal(metrics = {}) {
+  computeFrequencySignal(metrics = {}, options = {}) {
+    const isVideoFrame = options.sourceType === 'video-frame';
     const highFrequencyRatio = this.getMetric(metrics, 'fft_high_frequency_ratio');
     const periodicSpikeScore = this.getMetric(metrics, 'fft_periodic_spike_score');
     const gridArtifactScore = this.getMetric(metrics, 'fft_grid_artifact_score');
     const flags = [];
     let score = 0;
 
-    if (periodicSpikeScore >= 0.26 || gridArtifactScore >= 0.18) {
-      score += 16;
+    // Old camera footage has film grain which looks like high-frequency noise.
+    // Use higher thresholds for video frames to avoid false positives.
+    const spikeThresholdHigh = isVideoFrame ? 0.40 : 0.26;
+    const spikeThresholdMid  = isVideoFrame ? 0.30 : 0.18;
+    const gridThresholdHigh  = isVideoFrame ? 0.30 : 0.18;
+    const gridThresholdMid   = isVideoFrame ? 0.22 : 0.12;
+
+    if (periodicSpikeScore >= spikeThresholdHigh || gridArtifactScore >= gridThresholdHigh) {
+      score += isVideoFrame ? 10 : 16;
       flags.push('Fourier-domain analysis found periodic energy spikes or grid-like artifacts that can appear in GAN-generated media.');
-    } else if (periodicSpikeScore >= 0.18 || gridArtifactScore >= 0.12) {
-      score += 9;
+    } else if (periodicSpikeScore >= spikeThresholdMid || gridArtifactScore >= gridThresholdMid) {
+      score += isVideoFrame ? 5 : 9;
       flags.push('Fourier-domain analysis found moderate periodic structure that is uncommon in natural captures.');
     }
 
-    if (highFrequencyRatio >= 0.82 || highFrequencyRatio <= 0.34) {
+    // High-frequency ratio check — disabled for video frames (camera noise/grain is normal)
+    if (!isVideoFrame && (highFrequencyRatio >= 0.82 || highFrequencyRatio <= 0.34)) {
       score += 5;
       flags.push('Frequency energy is distributed unusually compared with most natural camera imagery.');
     }
@@ -133,27 +142,30 @@ class BackupSignalsService {
     const flags = [];
     let score = 0;
 
-    if (jawAsymmetry >= 0.15 || jawCenterOffset >= 0.14) {
+    // Old camera footage naturally produces jaw/mouth/eye variation due to
+    // lower resolution, compression, and natural face movement.
+    // Raise thresholds significantly to avoid false positives.
+    if (jawAsymmetry >= 0.22 || jawCenterOffset >= 0.20) {
       score += 12;
       flags.push('Jaw shape or position looks unusual in this frame.');
-    } else if (jawAsymmetry >= 0.11 || jawCenterOffset >= 0.1) {
+    } else if (jawAsymmetry >= 0.17 || jawCenterOffset >= 0.16) {
       score += 6;
       flags.push('Jaw shape looks slightly uneven in this frame.');
     }
 
-    if (jawWidthRatio > 0.86 || (jawWidthRatio > 0 && jawWidthRatio < 0.34)) {
+    if (jawWidthRatio > 0.92 || (jawWidthRatio > 0 && jawWidthRatio < 0.28)) {
       score += 8;
       flags.push('Jaw size looks unusual compared with the rest of the face.');
     }
 
-    if (mouthAsymmetry >= 0.14 || mouthOpenRatio >= 0.42) {
+    if (mouthAsymmetry >= 0.20 || mouthOpenRatio >= 0.52) {
       score += 8;
       flags.push('Lip or mouth shape looks unusual in this frame.');
-    } else if (mouthAsymmetry >= 0.1) {
+    } else if (mouthAsymmetry >= 0.16) {
       score += 4;
     }
 
-    if (eyeAsymmetry >= 0.018 || eyeOpenness >= 0.5) {
+    if (eyeAsymmetry >= 0.028 || eyeOpenness >= 0.6) {
       score += 6;
       flags.push('Eye shape or eye behavior looks unusual in this frame.');
     }
@@ -229,7 +241,7 @@ class BackupSignalsService {
     const faceSignal = edgeService.detectFaceArtifacts(buffer, mimeType);
     const opencvSignal = await opencvForensicsService.analyzeImageBuffer(buffer, mimeType);
     const cnnSignal = await cnnFallbackService.analyzeImageBuffer(buffer, mimeType, options);
-    const frequencySignal = this.computeFrequencySignal(opencvSignal.metrics || {});
+    const frequencySignal = this.computeFrequencySignal(opencvSignal.metrics || {}, options);
     const biologicalSignal = this.computeBiologicalSignal(
       { ...(opencvSignal.metrics || {}), face_detected: opencvSignal.face_detected },
       options
