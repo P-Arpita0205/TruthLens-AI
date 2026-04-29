@@ -189,46 +189,69 @@ export default function Auth() {
 
   const submitButtonLabel = isSubmitting
     ? (isLogin ? 'Signing In...' : 'Sending OTP...')
-    : (isLogin ? 'Login' : 'Create Account');
+    : (isLogin ? 'Sign In' : 'Create Account');
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 relative overflow-hidden font-sans">
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0F172A] to-black flex items-center justify-center p-6 relative overflow-hidden font-sans">
 
+      {/* Background glows */}
+      <div className="absolute top-[-20%] left-[-10%] w-[55%] h-[55%] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[55%] h-[55%] rounded-full bg-blue-600/10 blur-[140px] pointer-events-none" />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(34,211,238,0.07), transparent 65%)' }}
+      />
+
+      {/* Card */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white/80 backdrop-blur-2xl p-10 rounded-[2rem] border border-white shadow-2xl shadow-slate-200 z-10"
+        transition={{ duration: 0.55, ease: 'easeOut' }}
+        className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/40 z-10 p-10 transition-all duration-300 hover:shadow-cyan-500/10"
       >
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20">
-            <ShieldCheck className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">
-            {step === 3 ? (isLogin ? 'Welcome Back' : 'Account Created') : (isLogin ? 'Sign In' : 'Create Account')}
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+            className="w-14 h-14 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-cyan-500/30"
+          >
+            <ShieldCheck className="w-7 h-7 text-white" />
+          </motion.div>
+
+          <h1 className="text-2xl font-bold text-white mb-1">
+            {step === 3
+              ? (isLogin ? 'Welcome Back' : 'Account Created')
+              : (isLogin ? 'Sign In' : 'Create Account')}
           </h1>
-          <p className="text-slate-500 text-sm font-medium">
+          <p className="text-gray-400 text-sm">
             {step === 1
               ? 'Secure access to TruthLens AI'
               : step === 2
-                ? 'Security verification required'
-                : 'Redirecting securely to your dashboard...'}
+                ? 'Enter the code sent to your email'
+                : 'Redirecting to your dashboard...'}
           </p>
+
           {errorMsg ? (
-            <p className="text-red-500 text-sm mt-2 font-semibold bg-red-50 py-1 px-3 rounded inline-block">
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 text-red-400 text-sm font-medium bg-red-500/10 border border-red-500/20 py-2 px-4 rounded-lg inline-block"
+            >
               {errorMsg}
-            </p>
+            </motion.p>
           ) : null}
         </div>
 
         <AnimatePresence mode="wait">
+          {/* ── Step 1: Credentials form ── */}
           {step === 1 ? (
             <motion.div
               key="step1"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25 }}
             >
               <form onSubmit={handleSendOTP} className="space-y-4">
                 <AnimatePresence>
@@ -239,13 +262,13 @@ export default function Auth() {
                       exit={{ opacity: 0, height: 0 }}
                       className="relative overflow-hidden"
                     >
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                       <input
                         type="text"
                         placeholder="Full Name"
                         value={name}
                         onChange={(event) => setName(event.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-slate-900 placeholder-slate-400 font-medium shadow-sm"
+                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 font-medium outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.08)] disabled:opacity-50"
                         required={!isLogin}
                         disabled={isSubmitting}
                       />
@@ -254,13 +277,13 @@ export default function Auth() {
                 </AnimatePresence>
 
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     type="email"
                     placeholder="Email Address"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-slate-900 placeholder-slate-400 font-medium shadow-sm"
+                    className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 font-medium outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.08)] disabled:opacity-50"
                     required
                     disabled={isSubmitting}
                   />
@@ -275,44 +298,64 @@ export default function Auth() {
                   disabled={isSubmitting}
                   autoComplete={isLogin ? 'current-password' : 'new-password'}
                   leftIcon={Lock}
-                  inputClassName="w-full py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-slate-900 placeholder-slate-400 font-medium shadow-sm"
+                  inputClassName="w-full py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 font-medium outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.08)] disabled:opacity-50"
+                  wrapperClassName=""
                 />
+
+                {/* Forgot password — login mode only */}
+                {isLogin ? (
+                  <div className="text-right -mt-1">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/forgot-password')}
+                      className="text-sm text-cyan-400 hover:text-cyan-300 hover:underline transition-colors duration-200"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                ) : null}
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white py-4 rounded-xl font-bold transition-all active:scale-[0.98] shadow-lg shadow-emerald-500/30 mt-2"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 disabled:opacity-60 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-[1px] active:scale-[0.98] shadow-lg shadow-cyan-500/25 mt-2"
                 >
                   <span>{submitButtonLabel}</span>
                   {!isSubmitting ? <ArrowRight className="w-5 h-5" /> : null}
                 </button>
               </form>
 
-              <div className="mt-8 text-center text-sm font-medium text-slate-500">
+              <div className="mt-7 text-center text-sm text-gray-400">
                 {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <button onClick={toggleAuthMode} className="text-emerald-600 hover:text-emerald-700 font-bold underline underline-offset-4">
+                <button
+                  onClick={toggleAuthMode}
+                  className="text-cyan-400 hover:text-cyan-300 font-semibold hover:underline transition-colors duration-200"
+                >
                   {isLogin ? 'Sign up' : 'Log in'}
                 </button>
               </div>
             </motion.div>
           ) : null}
 
+          {/* ── Step 2: OTP Verification ── */}
           {step === 2 ? (
             <motion.div
               key="step2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25 }}
               className="text-center"
             >
-              <div className="mb-8">
-                <p className="text-sm text-slate-500">
-                  We sent a 6-digit code to <br />
-                  <span className="text-slate-900 font-bold mt-1 inline-block">{email.trim()}</span>
+              <div className="mb-7">
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  We sent a 6-digit code to
+                  <br />
+                  <span className="text-white font-semibold mt-1 inline-block">{email.trim()}</span>
                 </p>
               </div>
 
-              <div className="flex justify-between mb-8 gap-2">
+              <div className="flex justify-between mb-7 gap-2">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -338,7 +381,7 @@ export default function Auth() {
                         document.getElementById(`otp-${index - 1}`)?.focus();
                       }
                     }}
-                    className="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl text-center text-xl font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm"
+                    className="w-12 h-14 bg-white/5 border border-white/10 rounded-xl text-center text-xl font-bold text-white outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.08)] disabled:opacity-50"
                   />
                 ))}
               </div>
@@ -346,17 +389,20 @@ export default function Auth() {
               <button
                 onClick={handleVerify}
                 disabled={otp.join('').length < 6 || isSubmitting}
-                className="w-full bg-emerald-600 disabled:bg-emerald-300 disabled:shadow-none disabled:cursor-not-allowed hover:bg-emerald-700 text-white py-4 rounded-xl font-bold transition-all mb-6 shadow-lg shadow-emerald-500/30"
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-cyan-500/25 mb-6"
               >
                 {isSubmitting ? 'Verifying...' : 'Verify & Proceed'}
               </button>
 
-              <div className="flex items-center justify-center space-x-2 text-sm font-medium">
-                <span className="text-slate-500">Didn't receive code?</span>
+              <div className="flex items-center justify-center gap-2 text-sm font-medium">
+                <span className="text-gray-400">Didn't receive code?</span>
                 {timer > 0 ? (
-                  <span className="text-emerald-600 font-bold">00:{timer.toString().padStart(2, '0')}</span>
+                  <span className="text-cyan-400 font-bold">00:{timer.toString().padStart(2, '0')}</span>
                 ) : (
-                  <button onClick={handleResend} className="flex items-center text-emerald-600 hover:text-emerald-700 transition-colors font-bold">
+                  <button
+                    onClick={handleResend}
+                    className="flex items-center text-cyan-400 hover:text-cyan-300 transition-colors duration-200 font-bold"
+                  >
                     <RefreshCw className="w-4 h-4 mr-1" /> Resend
                   </button>
                 )}
@@ -364,20 +410,22 @@ export default function Auth() {
             </motion.div>
           ) : null}
 
+          {/* ── Step 3: Success ── */}
           {step === 3 ? (
             <motion.div
               key="step3"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
               className="flex flex-col items-center justify-center py-8"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', bounce: 0.5, delay: 0.2 }}
-                className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6"
+                className="w-20 h-20 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/20"
               >
-                <ShieldCheck className="w-10 h-10 text-emerald-600" />
+                <ShieldCheck className="w-10 h-10 text-cyan-400" />
               </motion.div>
 
               {!isLogin ? (
@@ -385,14 +433,14 @@ export default function Auth() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="text-emerald-600 font-medium mb-4 text-sm text-center px-4 py-2 bg-emerald-50 rounded-lg"
+                  className="text-cyan-400 font-medium mb-4 text-sm text-center px-4 py-2 bg-cyan-500/10 border border-cyan-400/20 rounded-lg"
                 >
                   Confirmation sent to {email.trim()}
                 </motion.p>
               ) : null}
 
-              <div className="flex items-center space-x-2 text-slate-500 font-medium text-sm">
-                <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
+              <div className="flex items-center gap-2 text-gray-400 font-medium text-sm">
+                <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
                 <span>Redirecting to Dashboard...</span>
               </div>
             </motion.div>
