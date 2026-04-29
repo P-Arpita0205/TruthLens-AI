@@ -181,24 +181,24 @@ class AgentsService {
       (hardSyntheticFlagCount >= 1 && flagScore >= 40) ||
       (portraitForensicsEvidence && flagScore >= 40 && flags.length >= 2);
     const facialVideoEvidence = isVideoAnalysis && (
-      lipSyncMismatchCount >= 1 ||
-      jawMotionAnomalyCount >= 2 ||
-      mouthMotionAnomalyCount >= 2 ||
-      eyeMotionAnomalyCount >= 2 ||
-      strongFacialEvidenceFrameCount >= 1 ||
-      facialEvidenceFrameCount >= 2 ||
-      jawAnomalyFrameCount >= 1 ||
-      mouthAnomalyFrameCount >= 1 ||
-      eyeAnomalyFrameCount >= 1
+      lipSyncMismatchCount >= 2 ||
+      jawMotionAnomalyCount >= 3 ||
+      mouthMotionAnomalyCount >= 3 ||
+      eyeMotionAnomalyCount >= 3 ||
+      strongFacialEvidenceFrameCount >= 2 ||
+      facialEvidenceFrameCount >= 3 ||
+      (jawAnomalyFrameCount >= 2 && mouthAnomalyFrameCount >= 1) ||
+      (mouthAnomalyFrameCount >= 2 && eyeAnomalyFrameCount >= 1) ||
+      (lipSyncMismatchCount >= 1 && facialEvidenceFrameCount >= 2)
     );
     const localEvidence = isVideoAnalysis
       ? (
           facialVideoEvidence &&
           (
-            localForensicsScore >= 12 ||
-            facialEvidenceStrength >= 28 ||
-            maxFrameRisk >= 34 ||
-            faceVisibleFrameCount >= 3
+            localForensicsScore >= 18 ||
+            facialEvidenceStrength >= 38 ||
+            maxFrameRisk >= 44 ||
+            faceVisibleFrameCount >= 4
           )
         )
       : (
@@ -328,13 +328,13 @@ class AgentsService {
       strictRisk += (eyeAnomalyFrameCount * 3);
 
       if (!evidenceSignals.facialVideoEvidence) {
-        strictRisk = Math.min(strictRisk, 34);
-      } else if (strongFacialEvidenceFrameCount >= 1 || lipSyncMismatchCount >= 1) {
+        strictRisk = Math.min(strictRisk, 28);
+      } else if (strongFacialEvidenceFrameCount >= 2 || lipSyncMismatchCount >= 2) {
         strictRisk = Math.max(strictRisk, threshold + 4);
-      } else if (facialEvidenceFrameCount >= 2 && facialEvidenceStrength >= 32) {
+      } else if (facialEvidenceFrameCount >= 3 && facialEvidenceStrength >= 38) {
         strictRisk = Math.max(strictRisk, threshold + 1);
-      } else if (facialEvidenceFrameCount === 1 && facialEvidenceStrength < 24) {
-        strictRisk = Math.min(strictRisk, threshold - 1);
+      } else if (facialEvidenceFrameCount <= 2 && facialEvidenceStrength < 32) {
+        strictRisk = Math.min(strictRisk, threshold - 2);
       }
 
       if (localOnlyAnalysis && !evidenceSignals.facialVideoEvidence) {
