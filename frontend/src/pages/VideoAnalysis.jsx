@@ -80,6 +80,10 @@ export default function VideoAnalysis() {
 
       const data = await readApiResponse(response);
       if (!response.ok) {
+        // If limit reached, update the quota badge immediately before showing error
+        if (response.status === 429 && data.limit !== undefined) {
+          setScanQuota({ limit: data.limit, used: data.used, remaining: data.remaining });
+        }
         throw new Error(data.error || 'Failed to analyze video');
       }
 
