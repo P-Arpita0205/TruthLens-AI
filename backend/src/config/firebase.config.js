@@ -1,5 +1,14 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json'); // Import the key
+
+// On Render (production): credentials are stored in FIREBASE_SERVICE_ACCOUNT_JSON env var
+// Locally: read from serviceAccountKey.json file
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+} else {
+  serviceAccount = require('./serviceAccountKey.json');
+}
 
 if (!admin.apps.length) {
   try {
