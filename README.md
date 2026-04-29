@@ -265,7 +265,7 @@ This project is licensed under the **ISC License**.
 
 <div align="center">
 
-Made with ❤️ by [Arpita](https://github.com/P-Arpita0205)
+Made by [P Arpita](https://github.com/P-Arpita0205)
 
 ⭐ Star this repo if you find it useful!
 
