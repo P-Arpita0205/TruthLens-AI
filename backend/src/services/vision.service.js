@@ -2,6 +2,7 @@ const { vlmModel } = require('../config/gemini.config');
 const edgeService = require('./edge.service');
 const opencvForensicsService = require('./opencv-forensics.service');
 const backupSignalsService = require('./backup-signals.service');
+const sightengineService = require('./sightengine.service');
 
 class VisionService {
   async sleep(ms) {
@@ -162,6 +163,36 @@ class VisionService {
   }
 
   async buildFallbackAnalysis(imageBuffer, mimeType = 'image/jpeg', error = null, options = {}) {
+    // ── Tier 2: Sightengine Specialized Deepfake API ──────────────────────────
+    // Only activates when Gemini fails, is rate-limited, or is inconclusive.
+    // Achieves ~90%+ accuracy on facial manipulation via DFDC-trained models.
+    // Requires SIGHTENGINE_API_USER + SIGHTENGINE_API_SECRET in .env
+    if (sightengineService.isConfigured()) {
+      const sightResult = await sightengineService.analyzeBuffer(imageBuffer, mimeType);
+
+      if (sightResult.available && sightResult.status === 'ok') {
+        console.info('[VisionService] Tier 2 fallback: Sightengine deepfake API succeeded.');
+
+        // Map Sightengine result to the shape expected by the agent pipeline
+        const sightengineBase = {
+          visual_score: sightResult.visual_score,
+          ai_generation_score: sightResult.ai_generation_score,
+          authenticity_confidence: sightResult.authenticity_confidence,
+          flags: sightResult.flags || [],
+          summary: sightResult.summary || '',
+          analysis_ok: true,
+          fallback_used: true,
+          fallback_source: 'sightengine'
+        };
+
+        // Enrich with local forensic signals (edge, metadata, OpenCV)
+        return await this.attachLocalForensics(sightengineBase, imageBuffer, mimeType, options);
+      }
+
+      console.warn('[VisionService] Sightengine unavailable, falling to Tier 3 local signals.');
+    }
+
+    // ── Tier 3: Local Backup Signals (CNN + OpenCV + Edge heuristics) ─────────
     const backupResult = await backupSignalsService.analyzeImageBuffer(imageBuffer, mimeType, options);
 
     return {
