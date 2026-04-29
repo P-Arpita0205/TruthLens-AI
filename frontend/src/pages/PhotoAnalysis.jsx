@@ -9,7 +9,8 @@ import {
   Activity,
   FileText,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  Gauge
 } from 'lucide-react';
 import analysisService, { normalizeAnalysisResult } from '../services/analysisService';
 
@@ -19,6 +20,7 @@ export default function PhotoAnalysis() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [isDragActive, setIsDragActive] = useState(false);
+  const [scanQuota, setScanQuota] = useState(null);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -82,6 +84,7 @@ export default function PhotoAnalysis() {
 
       const normalizedResult = normalizeAnalysisResult(data);
       setResult(normalizedResult);
+      if (data.scanQuota) setScanQuota(data.scanQuota);
 
       try {
         await analysisService.addAnalysis('photo', normalizedResult);
@@ -151,7 +154,26 @@ export default function PhotoAnalysis() {
               </p>
             ) : null}
           </div>
-        </div>
+
+          {/* Scan Quota Badge */}
+          <div className="flex flex-col items-start gap-2 lg:items-end">
+            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <Gauge className="h-4 w-4 text-cyan-300" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">Photo Scans Today</span>
+              {scanQuota !== null ? (
+                <span className={`ml-1 text-sm font-bold ${
+                  scanQuota.remaining === 0 ? 'text-rose-400' : scanQuota.remaining === 1 ? 'text-amber-400' : 'text-emerald-400'
+                }`}>
+                  {scanQuota.remaining}/{scanQuota.limit} left
+                </span>
+              ) : (
+                <span className="ml-1 text-sm font-bold text-slate-400">3/3 left</span>
+              )}
+            </div>
+            {scanQuota?.remaining === 0 && (
+              <p className="text-xs text-rose-400">Limit reached. Resets at midnight UTC.</p>
+            )}
+          </div>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
