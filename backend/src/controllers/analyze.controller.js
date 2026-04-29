@@ -280,7 +280,10 @@ exports.analyzeMedia = async (req, res) => {
       });
     }
 
-    res.status(200).json(resultPayload);
+    res.status(200).json({
+      ...resultPayload,
+      scanQuota: req.scanQuota || null   // { limit, used, remaining } set by rate-limit middleware
+    });
 
   } catch (error) {
     console.error('Analysis Pipeline Error:', error);

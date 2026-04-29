@@ -219,28 +219,72 @@ npm run dev
 - **Firebase service keys** — `serviceAccountKey.json` is gitignored at all levels
 - **OTP authentication** — 2FA enforced on sign-in via time-limited email OTP
 - **HTTP-only sessions** — JWTs issued as secure, HTTP-only cookies
+- **Per-user scan quota** — Max 3 scans/user/day enforced via Firestore to protect API budgets
+
+---
+
+## ⏱️ Rate Limiting
+
+To protect Gemini and Sightengine API budgets, each authenticated user is limited to **3 scans per day** (resets at midnight UTC).
+
+| Scenario | HTTP Status | Response |
+|---|---|---|
+| Within limit | `200 OK` | Includes `scanQuota` object |
+| Limit reached | `429 Too Many Requests` | Error with reset time |
+| Unauthenticated | `401 Unauthorized` | Auth required message |
+
+**429 Response when limit is reached:**
+```json
+{
+  "error": "Daily scan limit reached. You can perform up to 3 scans per day. Please try again tomorrow.",
+  "limit": 3,
+  "used": 3,
+  "remaining": 0,
+  "resetsAt": "2026-04-29T23:59:59Z"
+}
+```
+
+> To change the limit, set `DAILY_SCAN_LIMIT=<number>` in your `.env`.
 
 ---
 
 ## 📡 API Reference
 
-### `POST /api/v1/analyze/video`
-Analyze a video for deepfake manipulation.
+### `POST /api/v1/analyze`
+Analyze a photo or video for deepfake manipulation.
 
 | Property | Value |
 |---|---|
 | **Auth** | `Bearer <token>` |
 | **Content-Type** | `multipart/form-data` |
-| **Body** | `video` (file field) |
+| **Body** | `file` (image or video) |
+| **Daily Limit** | 3 requests per user |
 
-**Response:**
+**Success Response `200`:**
 ```json
 {
   "analysisId": "xyz123",
-  "score": 85,
-  "verdict": "Likely Manipulated",
-  "explanation": "Temporal inconsistency detected in facial lighting between frames 2 and 4."
+  "verdict": "Manipulated",
+  "confidence": 85,
+  "explanation": "Temporal inconsistency detected in facial lighting between frames 2 and 4.",
+  "type": "video",
+  "timestamp": "2026-04-29T04:30:00.000Z",
+  "scanQuota": {
+    "limit": 3,
+    "used": 1,
+    "remaining": 2
+  }
 }
+```
+
+### Detection Pipeline (3-Tier Fallback)
+
+```
+Tier 1 → Gemini VLM          (primary — retries 3× on rate-limit/downtime)
+     ↓ fails
+Tier 2 → Sightengine API     (DFDC-trained, ~90%+ accuracy — optional)
+     ↓ not configured / down
+Tier 3 → Local CNN + OpenCV  (always available, offline-capable)
 ```
 
 ---
