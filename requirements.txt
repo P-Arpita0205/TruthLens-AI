@@ -13,6 +13,7 @@ torch>=2.2.0
 pillow>=10.2.0
 opencv-python>=4.9.0
 numpy>=1.26.0
+flask>=3.0.0
 
 # --- Node.js Dependencies (Managed via npm) ---
 # Managed via /frontend/package.json and /backend/package.json

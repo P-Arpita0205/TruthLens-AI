@@ -1,26 +1,80 @@
 const fs = require('fs/promises');
 const os = require('os');
 const path = require('path');
-const { execFile } = require('child_process');
-const { promisify } = require('util');
-
-const execFileAsync = promisify(execFile);
+const { spawn } = require('child_process');
+const http = require('http');
 
 class VitFallbackService {
   constructor() {
     this.pythonCommand = process.env.PYTHON_BIN || 'python';
-    this.scriptPath = path.join(__dirname, 'vit_deepfake_detector.py');
+    this.serverScriptPath = path.join(__dirname, 'vit_server.py');
+    this.port = process.env.VIT_PORT || 5001;
+    this.serverProcess = null;
+    this.isStarting = false;
+  }
+
+  async ensureServerRunning() {
+    if (this.isStarting) {
+      // Wait for existing start attempt
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    return new Promise((resolve) => {
+      const options = {
+        hostname: '127.0.0.1',
+        port: this.port,
+        path: '/analyze',
+        method: 'POST',
+        timeout: 1000
+      };
+
+      const req = http.request(options, (res) => {
+        resolve(true);
+        res.resume();
+      });
+
+      req.on('error', () => {
+        // Server not running, start it
+        this.startServer().then(() => resolve(true)).catch(() => resolve(false));
+      });
+
+      req.end(JSON.stringify({ check: true }));
+    });
+  }
+
+  async startServer() {
+    if (this.serverProcess) return;
+    this.isStarting = true;
+    console.info(`[VitFallback] Starting persistent ViT server on port ${this.port}...`);
+
+    this.serverProcess = spawn(this.pythonCommand, [this.serverScriptPath], {
+      env: { ...process.env, VIT_PORT: this.port },
+      detached: false,
+      windowsHide: true
+    });
+
+    this.serverProcess.stdout.on('data', (data) => {
+      if (data.toString().includes('Running on')) {
+        console.info('[VitFallback] ViT server is ready.');
+        this.isStarting = false;
+      }
+    });
+
+    this.serverProcess.on('error', (err) => {
+      console.error('[VitFallback] Failed to start ViT server:', err);
+      this.isStarting = false;
+    });
+
+    // Wait for server to boot (usually 5-10 seconds for model load)
+    await new Promise(resolve => setTimeout(resolve, 8000));
+    this.isStarting = false;
   }
 
   getFileExtension(mimeType = 'image/jpeg') {
     const extensionMap = {
       'image/jpeg': '.jpg',
       'image/png': '.png',
-      'image/webp': '.webp',
-      'video/mp4': '.mp4',
-      'video/quicktime': '.mov',
-      'video/x-msvideo': '.avi',
-      'video/webm': '.webm'
+      'image/webp': '.webp'
     };
     return extensionMap[mimeType] || '.jpg';
   }
@@ -30,27 +84,49 @@ class VitFallbackService {
       return { available: false, status: 'empty_buffer' };
     }
 
+    await this.ensureServerRunning();
+
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'truthlens-vit-'));
     const inputPath = path.join(tempDir, `input${this.getFileExtension(mimeType)}`);
 
     try {
       await fs.writeFile(inputPath, buffer);
 
-      // Increase timeout because ViT on CPU can be slow, especially for videos
-      const timeout = mimeType.startsWith('video/') ? 60000 : 20000;
+      const result = await new Promise((resolve, reject) => {
+        const postData = JSON.stringify({ path: inputPath });
+        const options = {
+          hostname: '127.0.0.1',
+          port: this.port,
+          path: '/analyze',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          },
+          timeout: 45000
+        };
 
-      const { stdout = '' } = await execFileAsync(
-        this.pythonCommand,
-        [this.scriptPath, inputPath],
-        {
-          timeout,
-          windowsHide: true,
-          maxBuffer: 1024 * 1024
-        }
-      );
+        const req = http.request(options, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            try {
+              resolve(JSON.parse(body));
+            } catch (e) {
+              reject(new Error('Invalid response from ViT server'));
+            }
+          });
+        });
 
-      const result = JSON.parse(String(stdout || '{}').trim() || '{}');
-      
+        req.on('error', (e) => reject(e));
+        req.on('timeout', () => {
+          req.destroy();
+          reject(new Error('ViT server request timed out'));
+        });
+        req.write(postData);
+        req.end();
+      });
+
       if (result.error) {
         throw new Error(result.error);
       }
@@ -66,11 +142,11 @@ class VitFallbackService {
         source: 'local-vit'
       };
     } catch (error) {
-      console.warn('[VitFallback] Execution failed:', error?.message || error);
+      console.warn('[VitFallback] Analysis failed:', error?.message || error);
       return {
         available: false,
-        status: 'execution_failed',
-        error_message: error?.message || 'Local ViT execution failed.'
+        status: 'failed',
+        error_message: error?.message || 'Local ViT analysis failed.'
       };
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true }).catch(() => null);
