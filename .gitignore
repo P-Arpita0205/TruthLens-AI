@@ -141,3 +141,52 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# =============================================================
+# 🔐 TruthLens AI — Sensitive / Secret Files (NEVER commit)
+# =============================================================
+
+# Firebase service account keys (contain private keys)
+serviceAccountKey.json
+*serviceAccountKey*.json
+firebase-adminsdk-*.json
+
+# Generic credential files
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# =============================================================
+# 🐍 Python
+# =============================================================
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist-info/
+.Python
+
+# =============================================================
+# 🛠️ Editor & OS Files
+# =============================================================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# =============================================================
+# 📁 Project-specific
+# =============================================================
+scratch/
