@@ -68,6 +68,7 @@ graph TD
 TruthLens AI is optimized for speed and accuracy:
 - **Low-Latency Auth**: Parallelized Firebase/Firestore lookups for near-instant login and profile management.
 - **Fast Analysis**: Optimized frame extraction and concurrent VLM processing for rapid results.
+- **High-Speed Local ViT**: Persistent Python server eliminates model loading overhead for Tier 3 analysis.
 - **Unlimited Usage**: No daily scan limits – analyze as many photos and videos as needed.
 
 ---
@@ -152,7 +153,6 @@ cd frontend && npm run dev
 - **No Media Persistence**: Frames exist only in volatile RAM buffers.
 - **Secure Sessions**: HTTP-only cookies and JWT-based authentication.
 - **Git Protection**: All secrets (`.env`, `serviceAccountKey.json`) are strictly excluded via `.gitignore`.
-- **Atomic Quotas**: Prevents race conditions in scan limits.
 
 ---
 
