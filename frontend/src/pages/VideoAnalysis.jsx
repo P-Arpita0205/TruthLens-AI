@@ -13,6 +13,7 @@ import {
   Gauge
 } from 'lucide-react';
 import analysisService, { normalizeAnalysisResult } from '../services/analysisService';
+import API_BASE_URL from '../config/api';
 
 export default function VideoAnalysis() {
   const [file, setFile] = useState(null);
@@ -72,7 +73,7 @@ export default function VideoAnalysis() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:5000/api/analyze', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         body: formData
       });
