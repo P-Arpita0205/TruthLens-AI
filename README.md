@@ -170,7 +170,7 @@ TruthLens AI is open-source software licensed under the **ISC License**.
 
 <div align="center">
 
-Made with ❤️ by [P Arpita](https://github.com/P-Arpita0205)
+Made by [P Arpita](https://github.com/P-Arpita0205)
 
 **[TruthLens AI](https://github.com/P-Arpita0205/TruthLens-AI) — Restoring trust in digital media.**
 
