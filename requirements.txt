@@ -1,12 +1,12 @@
 # TruthLens AI - Project Requirements
 
-# --- 🖥️ System Requirements (Install manually) ---
+# --- System Requirements (Install manually) ---
 # Node.js >= 18.0.0
 # npm >= 9.0.0
 # ffmpeg >= 4.0.0 (Required for video processing)
 # Python >= 3.9.0 (Required for Tier 3/4 local forensics)
 
-# --- 🐍 Python Dependencies (For Local Forensic Tiers) ---
+# --- Python Dependencies (For Local Forensic Tiers) ---
 # Install using: pip install -r requirements.txt
 transformers>=4.38.0
 torch>=2.2.0
@@ -14,8 +14,8 @@ pillow>=10.2.0
 opencv-python>=4.9.0
 numpy>=1.26.0
 
-# --- 📦 Node.js Dependencies (Managed via npm) ---
-# These are handled by running 'npm install' in /frontend and /backend
+# --- Node.js Dependencies (Managed via npm) ---
+# Managed via /frontend/package.json and /backend/package.json
 # express
 # cors
 # dotenv
